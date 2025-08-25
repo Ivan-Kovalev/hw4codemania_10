@@ -19,4 +19,5 @@ public interface SpringJpaRepository extends JpaRepository<Doctor, Long> {
     @Transactional
     @Query(value = "UPDATE doctor SET department_id = :departmentId WHERE id = :doctorId", nativeQuery = true)
     void updateByDepartmentId(@Param("doctorId") Long doctorId, @Param("departmentId") Long departmentId);
+
 }
