@@ -2,6 +2,7 @@ package org.example.sql_tutorial.controller;
 
 import org.example.sql_tutorial.dto.CountPatientForEachAge;
 import org.example.sql_tutorial.model.Doctor;
+import org.example.sql_tutorial.model.Nurse;
 import org.example.sql_tutorial.model.Patient;
 import org.example.sql_tutorial.repository.JooqRepository;
 import org.example.sql_tutorial.repository.PlainJdbcRepository;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -57,5 +59,24 @@ public class Controller {
     public ResponseEntity<HttpStatus> updateDepIdForDoctor(@PathVariable Long docId, @PathVariable Long depId) {
         springJpaRepository.updateByDepartmentId(docId, depId);
         return ResponseEntity.ok(HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/jooq/1/{years}")
+    public Collection<Nurse> getAllNursesMoreThanYearsOfExperience(@PathVariable Integer years) {
+        return jooqRepository.allNursesMoreThanYearsOfExperience(years);
+    }
+
+    @PostMapping(path = "/jooq/2")
+    public ResponseEntity<HttpStatus> addNurse(@RequestBody Nurse nurse) {
+        jooqRepository.addNurse(nurse);
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
+
+    @PatchMapping(path = "/jooq/3/{nurseId}/{docId}")
+    public ResponseEntity<HttpStatus> changeDoctorForNurse(@PathVariable Long nurseId, @PathVariable Long docId) {
+        if (jooqRepository.changeDoctor(nurseId, docId)) {
+            return ResponseEntity.ok(HttpStatus.OK);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 }
