@@ -2,6 +2,8 @@ package org.example.sql_tutorial.repository;
 
 import jakarta.transaction.Transactional;
 import org.example.sql_tutorial.model.Doctor;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SpringJpaRepositoryTest {
 
     @Container
-    public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
+    public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
+            .withDatabaseName("testdb")
+            .withUsername("testuser")
+            .withPassword("testpass");
+
+    private static Flyway flyway;
 
     @Autowired
     private SpringJpaRepository repository;
@@ -44,23 +51,23 @@ public class SpringJpaRepositoryTest {
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 
+    @BeforeAll
+    static void setUpFlyway() {
+        flyway = Flyway.configure()
+                .dataSource(
+                        postgres.getJdbcUrl(),
+                        postgres.getUsername(),
+                        postgres.getPassword()
+                )
+                .locations("classpath:db/migration")
+                .cleanDisabled(false)
+                .load();
+    }
+
     @BeforeEach
-    void setUp() throws SQLException {
-        try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
-
-            stmt.execute("DROP TABLE IF EXISTS doctor");
-
-            stmt.execute("CREATE TABLE doctor (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "department_id BIGINT, " +
-                    "name VARCHAR(255) NOT NULL, " +
-                    "years_of_experience INTEGER, " +
-                    "speciality VARCHAR(255), " +
-                    "highest_category BOOLEAN, " +
-                    "graduation_date DATE, " +
-                    "employment_date DATE)");
-        }
+    void setUp() {
+        flyway.clean();
+        flyway.migrate();
     }
 
     @Test

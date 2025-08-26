@@ -1,5 +1,7 @@
 package org.example.sql_tutorial.repository.impl;
 
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -19,24 +21,30 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PlainJdbcRepositoryImplTest {
 
     @Container
-    public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
+    public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
+            .withDatabaseName("testdb")
+            .withUsername("testuser")
+            .withPassword("testpass");
+
+    private static Flyway flyway;
+
+    @BeforeAll
+    static void setUpFlyway() {
+        flyway = Flyway.configure()
+                .dataSource(
+                        postgres.getJdbcUrl(),
+                        postgres.getUsername(),
+                        postgres.getPassword()
+                )
+                .locations("classpath:db/migration")
+                .cleanDisabled(false)
+                .load();
+    }
 
     @BeforeEach
-    void setUp() throws SQLException {
-        try (Connection conn = createTestConnection();
-             Statement stmt = conn.createStatement()) {
-
-            stmt.execute("DROP TABLE IF EXISTS patient");
-
-            stmt.execute("CREATE TABLE patient (" +
-                    "id BIGINT PRIMARY KEY, " +
-                    "doctor_id BIGINT NOT NULL, " +
-                    "hospital_ward_id BIGINT NOT NULL, " +
-                    "name VARCHAR(255) NOT NULL, " +
-                    "diagnosis VARCHAR(255) NOT NULL, " +
-                    "age INTEGER NOT NULL, " +
-                    "date_of_receipt DATE NOT NULL)");
-        }
+    void setUp() {
+        flyway.clean();
+        flyway.migrate();
     }
 
     @Test

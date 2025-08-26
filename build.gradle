@@ -30,6 +30,8 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:testcontainers:1.20.6")
     testImplementation("org.testcontainers:postgresql")
+    implementation("org.flywaydb:flyway-core")
+    testImplementation 'org.flywaydb:flyway-database-postgresql'
 }
 
 tasks.named('test') {
