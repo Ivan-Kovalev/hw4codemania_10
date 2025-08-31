@@ -62,7 +62,7 @@ public class Controller {
     }
 
     @GetMapping(path = "/jooq/1/{years}")
-    public Collection<Nurse> getAllNursesMoreThanYearsOfExperience(@PathVariable Integer years) {
+    public Collection<Nurse> getAllNursesMoreThanYearsOfExperience(@PathVariable Long years) {
         return jooqRepository.allNursesMoreThanYearsOfExperience(years);
     }
 

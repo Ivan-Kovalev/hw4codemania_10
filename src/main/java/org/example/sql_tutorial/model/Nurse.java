@@ -2,6 +2,7 @@ package org.example.sql_tutorial.model;
 
 import jakarta.persistence.*;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.Objects;
 
@@ -21,19 +22,19 @@ public class Nurse {
     private String name;
 
     @Column(name = "years_of_experience")
-    private Integer yearsOfExperience;
+    private Long yearsOfExperience;
 
     @Column(name = "graduation_date")
-    private Date graduationDate;
+    private OffsetDateTime graduationDate;
 
     @Column(name = "employment_date")
-    private Date employmentDate;
+    private OffsetDateTime employmentDate;
 
     public Nurse() {
 
     }
 
-    public Nurse(Long doctorId, String name, Integer yearsOfExperience, Date graduationDate, Date employmentDate) {
+    public Nurse(Long doctorId, String name, Long yearsOfExperience, OffsetDateTime graduationDate, OffsetDateTime employmentDate) {
         this.doctorId = doctorId;
         this.name = name;
         this.yearsOfExperience = yearsOfExperience;
@@ -53,15 +54,15 @@ public class Nurse {
         return name;
     }
 
-    public Integer getYearsOfExperience() {
+    public Long getYearsOfExperience() {
         return yearsOfExperience;
     }
 
-    public Date getGraduationDate() {
+    public OffsetDateTime getGraduationDate() {
         return graduationDate;
     }
 
-    public Date getEmploymentDate() {
+    public OffsetDateTime getEmploymentDate() {
         return employmentDate;
     }
 
@@ -73,15 +74,15 @@ public class Nurse {
         this.name = name;
     }
 
-    public void setYearsOfExperience(Integer yearsOfExperience) {
+    public void setYearsOfExperience(Long yearsOfExperience) {
         this.yearsOfExperience = yearsOfExperience;
     }
 
-    public void setGraduationDate(Date graduationDate) {
+    public void setGraduationDate(OffsetDateTime graduationDate) {
         this.graduationDate = graduationDate;
     }
 
-    public void setEmploymentDate(Date employmentDate) {
+    public void setEmploymentDate(OffsetDateTime employmentDate) {
         this.employmentDate = employmentDate;
     }
 
