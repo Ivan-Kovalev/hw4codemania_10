@@ -2,6 +2,9 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'nu.studer.jooq' version '10.1.1'
+    id 'com.bmuschko.docker-spring-boot-application' version '9.4.0'
+
 }
 
 group = 'org.example'
@@ -25,15 +28,69 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation("org.jooq:jooq")
     testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:testcontainers:1.20.6")
+    testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:postgresql")
-    implementation("org.flywaydb:flyway-core")
-    testImplementation 'org.flywaydb:flyway-database-postgresql'
+    jooqGenerator 'org.postgresql:postgresql'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+jooq {
+    version = '3.20.5'
+    edition = nu.studer.gradle.jooq.JooqEdition.OSS
+    configurations {
+        main {
+            generateSchemaSourceOnCompilation = true
+
+            generationTool {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                jdbc {
+                    driver = 'org.postgresql.Driver'
+                    url = 'jdbc:postgresql://localhost:5432/MyHospital'
+                    user = 'postgres'
+                    password = 'postgres'
+                }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.postgres.PostgresDatabase'
+                        inputSchema = 'public'
+                    }
+                    generate {
+                        deprecated = false
+                        records = true
+                        immutablePojos = true
+                        fluentSetters = true
+                    }
+                    target {
+                        packageName = 'org.example.sql_tutorial.generated.jooq'
+                        directory = 'target/generated-src/jooq/main'
+                    }
+                    strategy.name = 'org.jooq.codegen.DefaultGeneratorStrategy'
+                }
+            }
+        }
+    }
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        eachDependency { details ->
+            if (details.requested.group == "org.jooq") {
+                details.useVersion("3.20.5")
+            }
+        }
+    }
+}
+
+docker {
+    springBootApplication {
+        baseImage = 'eclipse-temurin:21-jre-alpine'
+        ports = [8080]
+        images = ['sql-tutorial-application:1.115', 'sql-tutorial-application:latest']
+        jvmArgs = ['-Dspring.profiles.active=production', '-Xmx2048m']
+    }
 }

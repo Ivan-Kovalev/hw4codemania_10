@@ -9,7 +9,7 @@ import java.util.List;
 public interface JooqRepository {
     void addNurse(Nurse nurse);
 
-    List<Nurse> allNursesMoreThanYearsOfExperience(Integer years);
+    List<Nurse> allNursesMoreThanYearsOfExperience(Long years);
 
     boolean changeDoctor(Long nurseId, Long doctorId);
 }

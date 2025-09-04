@@ -3,8 +3,10 @@ package org.example.sql_tutorial.repository.impl;
 import org.example.sql_tutorial.dto.CountPatientForEachAge;
 import org.example.sql_tutorial.model.Patient;
 import org.example.sql_tutorial.repository.PlainJdbcRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,9 +14,8 @@ import java.util.List;
 @Repository
 public class PlainJdbcRepositoryImpl implements PlainJdbcRepository {
 
-    String url = "jdbc:postgresql://localhost:5432/MyHospital";
-    String username = "postgres";
-    String password = "postgres";
+    @Autowired
+    private DataSource dataSource;
 
     @Override
     public void addPatient(Patient patient) {
@@ -22,7 +23,7 @@ public class PlainJdbcRepositoryImpl implements PlainJdbcRepository {
         String insertSql = "INSERT INTO patient (id, doctor_id, hospital_ward_id, name, diagnosis, age, date_of_receipt) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DriverManager.getConnection(url, username, password);
+        try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
 
@@ -48,6 +49,11 @@ public class PlainJdbcRepositoryImpl implements PlainJdbcRepository {
 
             patient.setId(nextId);
 
+            conn.close();
+            stmt.close();
+            pstmt.close();
+            rs.close();
+
         } catch (SQLException e) {
             throw new RuntimeException("SQL Exception on addPatient() method: " + e.getMessage(), e);
         }
@@ -57,7 +63,7 @@ public class PlainJdbcRepositoryImpl implements PlainJdbcRepository {
     public List<CountPatientForEachAge> getCountPatientForEachAge() {
         String sql = "SELECT age, COUNT(*) as count FROM patient WHERE age BETWEEN 1 AND 100 GROUP BY age";
 
-        try (Connection conn = DriverManager.getConnection(url, username, password);
+        try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -68,6 +74,10 @@ public class PlainJdbcRepositoryImpl implements PlainJdbcRepository {
                 int count = rs.getInt("count");
                 result.add(new CountPatientForEachAge(age, count));
             }
+
+            conn.close();
+            stmt.close();
+            rs.close();
 
             return result;
 
@@ -80,10 +90,13 @@ public class PlainJdbcRepositoryImpl implements PlainJdbcRepository {
     public void changeDoctor(Long patientId, Long doctorId) {
         String sql = "UPDATE patient SET doctor_id = " + doctorId + " WHERE id = " + patientId;
 
-        try (Connection conn = DriverManager.getConnection(url, username, password);
+        try (Connection conn = dataSource.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             int affectedRows = pstmt.executeUpdate();
+
+            conn.close();
+            pstmt.close();
 
             if (affectedRows == 0) {
                 throw new RuntimeException("Change doctor for patient failed, no rows affected.");
